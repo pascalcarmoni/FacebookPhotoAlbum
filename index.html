@@ -1,11 +1,7 @@
-<%
-appID="214799981863805"
-redirectPage = "http://www.matchez-moi.com/album_facebook.asp"
-permissions="user_photos"
 
-fblink =  "https://m.facebook.com/dialog/oauth?client_id=" & appID & "&response_type=code&redirect_uri=" & redirectPage & "&scope=" & permissions
-%>
-
+<!--
+app ID 214799981863805 at 2 places
+-->
 <h1>Importer des photos de facebook</h1><BR>
 
 <div id="fbloginbutton">
@@ -14,7 +10,7 @@ fblink =  "https://m.facebook.com/dialog/oauth?client_id=" & appID & "&response_
 
 
 
-<a href="<%=fblink%>">Connectez-vous à facebook ici</a>
+<a href="https://m.facebook.com/dialog/oauth?client_id=214799981863805&response_type=code&redirect_uri=http://www.matchez-moi.com/album_facebook.asp&scope=user_photos">Connectez-vous à facebook ici</a>
 </div>
 
 
@@ -84,7 +80,7 @@ display:none;
 
     window.fbAsyncInit = function() {
   FB.init({
-    appId      : '<%=appID%>',
+    appId      : '214799981863805',
     status     : true, // check login status
     cookie     : true, // enable cookies to allow the server to access the session
     xfbml      : true  // parse XFBML

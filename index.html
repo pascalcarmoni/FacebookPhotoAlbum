@@ -1,0 +1,295 @@
+<%
+appID="214799981863805"
+redirectPage = "http://www.matchez-moi.com/album_facebook.asp"
+permissions="user_photos"
+
+fblink =  "https://m.facebook.com/dialog/oauth?client_id=" & appID & "&response_type=code&redirect_uri=" & redirectPage & "&scope=" & permissions
+
+
+%>
+
+<h1>Importer des photos de facebook</h1><BR>
+
+<div id="fbloginbutton">
+<strong>Connectez-vous à facebook ici</strong>
+<BR>
+
+
+
+<a href="<%=fblink%>">Connectez-vous à facebook ici</a>
+</div>
+
+
+<div id="fb-root"></div>
+
+<style type='text/css'>
+
+#photos,#albums,#picture { margin-top:15px; width: 100%;  }
+
+.morebutton
+{
+	height:100px; 
+	width: 100px ;
+}
+
+
+.pic_wrapper, .pic_wrapper2  { 
+	float: left;
+	margin-right: 5px; 
+	margin-bottom: 5px;
+	border: solid 1px #ccc;
+	text-align: center;
+	font-family:Arial, Helvetica, sans-serif;
+	font-size: 12px;
+	background-color:#fff;
+	border-radius: 4px;
+	-webkit-border-radius: 4px;
+	-moz-border-radius: 4px;
+	cursor: pointer; 
+	cursor: hand;
+}
+
+.hide {
+display:none;
+}
+
+.pic_wrapper { 
+	height:130px; 
+	width: 100px ;
+}
+
+.pic_wrapper2 { 
+	height:100px; 
+	width: 100px ;
+}
+
+.pic_thumb { 
+	height:100px; 
+	width: 100px ;
+	background-color:#fff;
+	background-repeat:no-repeat;
+	background-position: center center;
+	background-size: cover;
+	-webkit-background-size: cover;
+  	-moz-background-size: cover;
+	border-radius: 4px;
+	-webkit-border-radius: 4px;
+	-moz-border-radius: 4px;
+}
+
+</style>
+
+
+<script>
+
+
+
+    window.fbAsyncInit = function() {
+  FB.init({
+    appId      : '<%=appID%>',
+    status     : true, // check login status
+    cookie     : true, // enable cookies to allow the server to access the session
+    xfbml      : true  // parse XFBML
+  });
+
+  // Here we subscribe to the auth.authResponseChange JavaScript event. This event is fired
+  // for any authentication related change, such as login, logout or session refresh. This means that
+  // whenever someone who was previously logged out tries to log in again, the correct case below 
+  // will be handled. 
+  FB.Event.subscribe('auth.authResponseChange', function(response) {
+    // Here we specify what we do with the response anytime this event occurs. 
+    if (response.status === 'connected') {
+		
+		 //alert(response.authResponse.accessToken);
+		 var get_token = response.authResponse.accessToken;
+		 load_albums(get_token);		 
+		 //alert(get_token);
+		 
+		 //$('#keywords').val(access_token);
+		 
+      // The response object is returned with a status field that lets the app know the current
+      // login status of the person. In this case, we're handling the situation where they 
+      // have logged in to the app.
+      testAPI();
+
+	  $("#fbloginbutton").addClass("hide");
+
+    } else if (response.status === 'not_authorized') {
+
+		$("#fbloginbutton").removeClass("hide");
+
+		
+    } else {
+      // In this case, the person is not logged into Facebook, so we call the login() 
+      // function to prompt them to do so. Note that at this stage there is no indication
+      // of whether they are logged into the app. If they aren't then they'll see the Login
+      // dialog right after they log in to Facebook. 
+      // The same caveats as above apply to the FB.login() call here.
+		$("#fbloginbutton").removeClass("hide");
+    }
+  });
+  };
+
+  // Load the SDK asynchronously
+  (function(d){
+   var js, id = 'facebook-jssdk', ref = d.getElementsByTagName('script')[0];
+   if (d.getElementById(id)) {return;}
+   js = d.createElement('script'); js.id = id; js.async = true;
+   js.src = "http://connect.facebook.net/fr_CA/all.js";
+   ref.parentNode.insertBefore(js, ref);
+  }(document));
+
+  // Here we run a very simple test of the Graph API after login is successful. 
+  // This testAPI() function is only called in those cases. 
+  function testAPI() {
+    console.log('Welcome!  Fetching your information.... ');
+    FB.api('/me', function(response) {
+      //console.log('Good to see you, ' + response.name + '.');
+	  //console.log('user ID, ' + response.id + '.');	  
+	  //console.log(response);	   
+    });
+  }
+ 
+  
+var albumID = '';
+
+
+function Setcover(albumID,coverJPG) {
+
+$("#"+albumID).css('background-image','url('+coverJPG+')');
+
+}
+
+function load_albums(access_token) {
+
+$("#albums").html('<h2>Mes albums sur Facebook</h2><BR>');
+
+var fburl = "https://graph.facebook.com/me/albums?access_token="+access_token;
+
+	$.getJSON(fburl, function(data2){
+		$.each(data2['data'], function(i, obj) {			
+			
+
+			var $imgcount = this.count
+			if (this.count==undefined) {$imgcount = 0;}
+
+
+			$img = '<span onclick=load_photos("'+obj.id+'","'+encodeURI(obj.name)+'",'+$imgcount+',0,"'+access_token+'"); class="pic_wrapper"><div  id="'+obj.id+'" class="pic_thumb albums" style="background-image:url(https://graph.facebook.com/'+obj.cover_photo+'/picture?type=album&access_token='+access_token+');" ></div>'+obj.name+' ('+$imgcount+')</span>';
+
+			$("#albums").append($img);
+
+			
+			//first pict of this album		
+			if ($imgcount > 0 && obj.cover_photo==undefined)			
+			{			
+			$.getJSON('https://graph.facebook.com/'+obj.id+'/photos?limit=1&access_token='+access_token, function(dataFB){ 				
+			Setcover(obj.id,dataFB.data[0].picture);
+			console.log(dataFB);
+			});
+			}		
+
+			//console.log(data);	
+
+		}); //each
+	});
+
+}
+
+function load_photos(albumID,album_name,imgcount,offset,access_token) {
+
+
+$("#albums").addClass("hide");
+$("#photos").removeClass("hide");
+
+
+var album_name = decodeURIComponent(album_name);
+
+if (offset==0)
+{
+$("#photos").html('<div><h2>Mes albums sur Faceboook > '+album_name+' ('+imgcount+') </h2> <button onclick="BackAlbum()">Retour</button></div><BR>');
+}
+else
+{
+$("#"+offset).addClass("hide");
+}
+
+	var fbAlbumUrl = "https://graph.facebook.com/"+albumID+"/photos?offset="+offset+"&limit=25&access_token="+access_token;
+
+	$.getJSON(fbAlbumUrl, function(data){
+		$.each(data["data"], function() {
+
+			$img = '<span onclick=load_big("'+this.source+'","'+encodeURI(album_name)+'","'+albumID+'","'+$.trim(access_token)+'"); class="pic_wrapper2"><div class="pic_thumb albums" style="background-image:url('+this.picture+');" ></div></span>';
+			
+			$("#photos").append($img);
+		}); //each
+		console.log(data);
+	
+	offset = offset + 25;
+
+	if ((imgcount - offset) > 0)
+	{
+		$buttonMore = '<button class="morebutton" id="'+offset+'" onclick=load_photos('+albumID+',"'+encodeURI(album_name)+'",'+imgcount+','+offset+',"'+$.trim(access_token)+'")>VOIR PLUS DE PHOTOS</button>';
+
+		$("#photos").append($buttonMore);
+
+	}
+	}); //json
+
+
+	
+}
+
+
+function load_big(bigpic,album_name,albumID,access_token) {
+$("#photos").addClass("hide");
+$("#picture").removeClass("hide");
+
+
+$("#picture").html('<div><h2>Mes albums sur Faceboook > '+decodeURIComponent(album_name)+' > Photo</h2><button onclick="BackAlbumPhoto()">Retour</button></div><BR><BR><button onclick=postpic("'+bigpic+'",0)>Utiliser ceci comme photo de profil</button><button onclick=postpic("'+bigpic+'",1)>Ajouter cette photo à votre album</button><div id="loading"></div> <BR><img src="'+bigpic+'" alt="Photo">');
+
+}
+
+
+
+function postpic(imgURL,album)
+{
+$("#loading").html("Chargement...un instant SVP");
+
+$.ajax({
+  url: '/photo_fromURL.asp?album='+album+'&imgURL='+imgURL,
+  success: function(data) {
+
+	if (data=='okprofil')
+	{$("#loading").html("Photo ajoutée comme photo de profil <a href='photo.asp'>Voir ma photo de profil</a>");}
+	if (data=='limitnonvip')
+	{$("#loading").html("Membre non VIP : Limite de 3 photos. <a href='abonnement.asp'>Abonnez-vous VIP</a> pour ajouter d'autre photo");}
+	if (data=='limitvip')
+	{$("#loading").html("Membre VIP : Limite de 10 photos. <a href='album.asp'>Consulter mon album</a>");}
+	if (data=='okalbum')
+	{$("#loading").html("Photo ajoutée à votre <a href='album.asp'>album</a>. Faites <b>retour</b> pour ajouter d'autre photos");}
+  }
+
+});
+}
+
+
+function BackAlbum()
+{
+$("#photos").addClass("hide");
+$("#albums").removeClass("hide");
+}
+
+function BackAlbumPhoto()
+{
+$("#picture").addClass("hide");
+$("#photos").removeClass("hide");
+}
+
+
+</script>
+
+<div id="albums"></div>
+<div id="photos" class="hide"></div>
+<div id="picture" class="hide"></div>
+
+<pre></pre>

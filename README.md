@@ -7,4 +7,4 @@ Need an APP ID
 
 Demo
 -----------
-Demo: http://htmlpreview.github.io/?https://raw.github.com/pascalcarmoni/FacebookPhotoAlbum/master/index.html
+Demo: to comme soon

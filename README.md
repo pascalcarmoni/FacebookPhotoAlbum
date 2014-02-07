@@ -7,4 +7,4 @@ Need an APP ID
 
 Demo
 -----------
-Demo: to come soon
+Demo: coming soon
